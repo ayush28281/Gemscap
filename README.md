@@ -1,25 +1,22 @@
+
 # 📈 Quantitative Trading Analytics Dashboard
 
 > **Real-time quantitative analytics platform** built for a **Quant Developer evaluation**, showcasing an end-to-end trading analytics pipeline — from live market data ingestion to statistical analysis and interactive visualization.
 
 ---
 
-## 🚀 Project Demo
+##  Project Demo
 
 🎥 **Live Demo Video**  
-[![Watch the video](https://img.youtube.com/vi/https://youtu.be/qgPF-AnorGg/hqdefault.jpg)](https://www.youtube.com/embed/https://youtu.be/qgPF-AnorGg)
-
-[<img src="https://img.youtube.com/vi/https://youtu.be/qgPF-AnorGg/hqdefault.jpg" width="600" height="300"
-/>](https://www.youtube.com/embed/https://youtu.be/qgPF-AnorGg)
-
+👉 **YouTube URL:** _[https://youtu.be/qgPF-AnorGg?si=DDkYApzKNP1q5tkc]_
 
 ```
-https://www.youtube.com/watch?v=YOUR_VIDEO_ID
+https://youtu.be/qgPF-AnorGg?si=DDkYApzKNP1q5tkc
 ```
 
 ---
 
-##  Overview
+## 🧠 Overview
 
 This project demonstrates a **complete client–server quantitative trading analytics system** using live market data from **Binance Futures**.
 
@@ -215,5 +212,7 @@ All system design, analytics logic, and integration decisions were implemented a
 ---
 
 ## ⚠️ Disclaimer
+
+This project is for **educational and evaluation purposes only**.
 
 It does **not** constitute financial advice and is **not intended for live trading**.
