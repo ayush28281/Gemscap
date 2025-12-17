@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+import { downloadFile } from "@/lib/download";
+
 import {
   Wifi,
   WifiOff,

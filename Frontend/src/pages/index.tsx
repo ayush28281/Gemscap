@@ -15,6 +15,8 @@ import {
   calculateRollingStats,
 } from "@/lib/analytics";
 
+import { downloadFile } from "@/lib/download";
+
 import { PriceCard } from "@/components/dashboard/PriceCard";
 import { PriceChart } from "@/components/dashboard/PriceChart";
 import { SpreadChart } from "@/components/dashboard/SpreadChart";
@@ -29,6 +31,7 @@ import { DataTable } from "@/components/dashboard/DataTable";
 import type { Timeframe, TickData } from "@/types/trading";
 
 const DEFAULT_SYMBOLS = ["btcusdt", "ethusdt"];
+const API_BASE = "http://127.0.0.1:8000";
 
 export default function Index() {
   const [symbols, setSymbols] = useState<string[]>(DEFAULT_SYMBOLS);
@@ -45,25 +48,33 @@ export default function Index() {
     getTicks,
     getOHLC,
     clearData,
-    exportData,
-    exportOHLC,
     tickCount,
   } = useTickDataStore();
 
   const { alerts, addAlert, removeAlert, toggleAlert, checkAlerts } = useAlerts();
 
-  const addLog = useCallback((msg: string, type: LogEntry["type"] = "info") => {
-    setLogs((p) => [...p.slice(-99), { timestamp: new Date().toISOString(), message: msg, type }]);
-  }, []);
+  const addLog = useCallback(
+    (msg: string, type: LogEntry["type"] = "info") => {
+      setLogs((p) => [
+        ...p.slice(-99),
+        { timestamp: new Date().toISOString(), message: msg, type },
+      ]);
+    },
+    []
+  );
 
-  const onTick = useCallback((tick: TickData) => {
-    addTick(tick);
-  }, [addTick]);
+  const onTick = useCallback(
+    (tick: TickData) => {
+      addTick(tick);
+    },
+    [addTick]
+  );
 
-  const { isConnected, statuses, connect, disconnect } = useBinanceWebSocket({
-    symbols,
-    onTick,
-  });
+  const { isConnected, statuses, connect, disconnect } =
+    useBinanceWebSocket({
+      symbols,
+      onTick,
+    });
 
   // ===================== ANALYTICS =====================
   const analytics = useMemo(() => {
@@ -73,7 +84,6 @@ export default function Index() {
     const primaryOHLC = getOHLC(primarySymbol, timeframe);
     const secondaryOHLC = getOHLC(secondarySymbol, timeframe);
 
-    // Use ticks first, OHLC later
     const primaryPrices =
       primaryOHLC.length > 5
         ? primaryOHLC.map((d) => d.close)
@@ -102,9 +112,15 @@ export default function Index() {
       if (regression) {
         spreadHistory = regression.residuals;
 
-        const rolling = calculateRollingStats(spreadHistory, rollingWindow);
+        const rolling = calculateRollingStats(
+          spreadHistory,
+          rollingWindow
+        );
         zScoreHistory = rolling.zScore;
-        spreadStats = calculateSpreadStats(spreadHistory, rollingWindow);
+        spreadStats = calculateSpreadStats(
+          spreadHistory,
+          rollingWindow
+        );
 
         if (spreadHistory.length >= 20) {
           adfResult = calculateADFTest(spreadHistory);
@@ -119,8 +135,14 @@ export default function Index() {
     }
 
     return {
-      primaryStats: calculatePriceStats(primaryTicks, primarySymbol),
-      secondaryStats: calculatePriceStats(secondaryTicks, secondarySymbol),
+      primaryStats: calculatePriceStats(
+        primaryTicks,
+        primarySymbol
+      ),
+      secondaryStats: calculatePriceStats(
+        secondaryTicks,
+        secondarySymbol
+      ),
       primaryOHLC,
       secondaryOHLC,
       regression,
@@ -134,7 +156,15 @@ export default function Index() {
           ? primaryOHLC.map((d) => d.timestamp)
           : primaryTicks.map((t) => t.ts),
     };
-  }, [store, primarySymbol, secondarySymbol, timeframe, rollingWindow, getTicks, getOHLC]);
+  }, [
+    store,
+    primarySymbol,
+    secondarySymbol,
+    timeframe,
+    rollingWindow,
+    getTicks,
+    getOHLC,
+  ]);
 
   // ===================== ALERT LOOP =====================
   const alertRef = useRef<NodeJS.Timeout | null>(null);
@@ -155,6 +185,23 @@ export default function Index() {
     return () => alertRef.current && clearInterval(alertRef.current);
   }, [analytics, checkAlerts]);
 
+  // ===================== DOWNLOAD HANDLERS =====================
+  const handleExportTicks = (format: "json" | "csv") => {
+    downloadFile(
+      `${API_BASE}/ticks/${primarySymbol}?format=${format}`,
+      `${primarySymbol}_ticks.${format}`,
+      format
+    );
+  };
+
+  const handleExportOHLC = () => {
+    downloadFile(
+      `${API_BASE}/ohlc/${primarySymbol}/${timeframe}?format=csv`,
+      `${primarySymbol}_${timeframe}.csv`,
+      "csv"
+    );
+  };
+
   // ===================== UI =====================
   return (
     <div className="min-h-screen bg-background">
@@ -172,7 +219,7 @@ export default function Index() {
           onTimeframeChange={setTimeframe}
           onRollingWindowChange={setRollingWindow}
           onClearData={clearData}
-          onExportData={(f) => exportData(primarySymbol, f)}
+          onExportData={handleExportTicks}
         />
 
         <div className="grid grid-cols-2 gap-4">
@@ -199,11 +246,18 @@ export default function Index() {
         <div className="grid grid-cols-3 gap-4">
           <CorrelationChart
             correlationHistory={analytics.correlationHistory}
-            timestamps={analytics.timestamps.slice(-analytics.correlationHistory.length)}
-            currentCorrelation={analytics.correlationHistory.at(-1) || 0}
+            timestamps={analytics.timestamps.slice(
+              -analytics.correlationHistory.length
+            )}
+            currentCorrelation={
+              analytics.correlationHistory.at(-1) || 0
+            }
           />
 
-          <VolumeChart data={analytics.primaryOHLC} symbol={primarySymbol} />
+          <VolumeChart
+            data={analytics.primaryOHLC}
+            symbol={primarySymbol}
+          />
 
           <StatsPanel
             regression={analytics.regression}
@@ -217,7 +271,7 @@ export default function Index() {
         <DataTable
           data={analytics.primaryOHLC}
           symbol={primarySymbol}
-          onExport={() => exportOHLC(primarySymbol, timeframe, "csv")}
+          onExport={handleExportOHLC}
         />
 
         <AlertManager
