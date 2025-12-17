@@ -7,7 +7,7 @@
 ## 🚀 Project Demo
 
 🎥 **Live Demo Video**  
-👉 **YouTube URL:** _[Add your demo video link here]_
+👉 **YouTube URL:** https://youtu.be/qgPF-AnorGg
 
 ```
 https://www.youtube.com/watch?v=YOUR_VIDEO_ID
