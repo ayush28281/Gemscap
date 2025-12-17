@@ -7,7 +7,11 @@
 ## 🚀 Project Demo
 
 🎥 **Live Demo Video**  
-👉 **YouTube URL:** https://youtu.be/qgPF-AnorGg
+[![Watch the video](https://img.youtube.com/vi/https://youtu.be/qgPF-AnorGg/hqdefault.jpg)](https://www.youtube.com/embed/https://youtu.be/qgPF-AnorGg)
+
+[<img src="https://img.youtube.com/vi/https://youtu.be/qgPF-AnorGg/hqdefault.jpg" width="600" height="300"
+/>](https://www.youtube.com/embed/https://youtu.be/qgPF-AnorGg)
+
 
 ```
 https://www.youtube.com/watch?v=YOUR_VIDEO_ID
