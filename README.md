@@ -1,255 +1,215 @@
-# Quantitative Trading Analytics Dashboard
+# 📈 Quantitative Trading Analytics Dashboard
 
-## Overview
-
-This project is a **real-time quantitative analytics dashboard** designed as an evaluation assignment for a Quant / Trading Systems role. It demonstrates an **end-to-end analytical workflow** starting from live market data ingestion to quantitative analysis, alerting, visualization, and data export.
-
-The application consumes **live tick-level data from Binance Futures WebSocket**, processes and aggregates it into multiple timeframes, computes commonly used **statistical-arbitrage analytics**, and presents the results through an **interactive web-based dashboard**.
-
-The system is intentionally designed as a **research and trader-assist tool**, focusing on clarity, modularity, and extensibility rather than production-scale optimization.
+> **Real-time quantitative analytics platform** built for a **Quant Developer evaluation**, showcasing an end-to-end trading analytics pipeline — from live market data ingestion to statistical analysis and interactive visualization.
 
 ---
 
-## Key Objectives Addressed
+## 🚀 Project Demo
 
-* Real-time market data ingestion
-* Time-based resampling (1s / 1m / 5m)
-* Quantitative analytics for relative-value trading
-* Interactive visualization and dashboards
-* Rule-based alerting
-* Data export for downstream research
-* Clean, modular architecture suitable for extension
-
----
-
-## Architecture Overview
+🎥 **Live Demo Video**  
+👉 **YouTube URL:** _[Add your demo video link here]_
 
 ```
-Binance WebSocket (Live Ticks)
-          ↓
-Ingestion Layer (WebSocket Hooks)
-          ↓
-In-Memory Store (Ticks + OHLC Aggregation)
-          ↓
-Analytics Engine (Stats, Regression, Spread)
-          ↓
-Alert Engine (Rule-based)
-          ↓
-React Dashboard (Charts, Tables, Controls)
+https://www.youtube.com/watch?v=YOUR_VIDEO_ID
 ```
-
-**Design Philosophy**
-
-* Loose coupling between ingestion, storage, analytics, and UI
-* Clear separation of concerns
-* Designed for easy replacement of data sources or analytics modules
 
 ---
 
-## Technology Stack
+##  Overview
+
+This project demonstrates a **complete client–server quantitative trading analytics system** using live market data from **Binance Futures**.
+
+The focus is on:
+- Clean system architecture
+- Backend-driven quantitative analytics
+- Real-time data processing
+- Interactive visualization
+
+It is designed as a **research and trader-assist tool**, not a production trading system.
+
+---
+
+## 🏗️ High-Level Architecture
+
+```
+┌──────────────────────────┐
+│ Binance Futures WebSocket│
+│   (btcusdt@trade etc.)   │
+└─────────────┬────────────┘
+              │
+              ▼
+┌──────────────────────────┐
+│ Python Backend (FastAPI) │
+│                          │
+│ • WebSocket Ingestion    │
+│ • Tick Store (in-memory) │
+│ • OHLC Resampler         │
+│ • Analytics Engine       │
+│ • Alert Engine           │
+│ • REST + WS APIs         │
+└─────────────┬────────────┘
+              │
+      REST / WebSocket
+              │
+              ▼
+┌──────────────────────────┐
+│ React Frontend Dashboard │
+│                          │
+│ • Live Charts            │
+│ • Analytics Panels       │
+│ • Alerts UI              │
+│ • Data Export            │
+└──────────────────────────┘
+```
+
+---
+
+## 🧩 Technology Stack
+
+### Backend
+- Python 3.10+
+- FastAPI
+- asyncio + websockets
+- In-memory data store (pluggable with Redis / DuckDB)
 
 ### Frontend
-
-* **React + TypeScript** – UI and state management
-* **Vite** – Fast development and bundling
-* **shadcn/ui + Radix UI** – Component system
-* **Tailwind CSS** – Styling
-* **Recharts** – Interactive charts
-* **Framer Motion** – UI animations
-
-### Analytics & Utilities
-
-* **simple-statistics** – Statistical computations
-
-### Data Source
-
-* **Binance Futures WebSocket API** (trade stream)
+- React + TypeScript
+- Vite
+- Tailwind CSS
+- shadcn/ui + Radix UI
+- Recharts
+- Framer Motion
 
 ---
 
-## Core Features
-
-### 1. Live Market Data Ingestion
-
-* Connects to Binance Futures WebSocket streams
-* Supports multiple symbols simultaneously
-* Normalizes tick data into a unified internal format
-
-Tick format:
+## 🔄 Data Flow
 
 ```
-{ timestamp, symbol, price, quantity }
+Binance Tick
+ → Backend WebSocket
+ → Tick Store
+ → OHLC Resampler (1s / 1m / 5m)
+ → Analytics Engine
+ → Alert Engine
+ → REST / WS API
+ → Frontend Dashboard
 ```
 
 ---
 
-### 2. Timeframe Aggregation
+## ⚙️ Core Features
 
-Tick data is aggregated into OHLC bars using event-time logic:
+### 1️⃣ Live Market Data Ingestion
+- Binance Futures WebSocket streams
+- Multi-symbol support
+- Normalized tick format
 
-* 1 second (1s)
-* 1 minute (1m)
-* 5 minutes (5m)
-
-Each OHLC bar contains:
-
-* Open, High, Low, Close
-* Volume
-* Number of trades
-
----
-
-### 3. Quantitative Analytics
-
-The following analytics are computed dynamically as data becomes available:
-
-#### Price Statistics
-
-* Last price
-* Absolute and percentage change
-* High / Low
-* Volume
-* VWAP
-
-#### Hedge Ratio (OLS Regression)
-
-* Ordinary Least Squares regression between two assets
-* Estimates hedge ratio (β)
-* Computes R² and correlation
-
-#### Spread & Z-Score
-
-* Spread = Y − βX
-* Rolling mean and standard deviation
-* Z-score for mean-reversion signals
-
-#### Stationarity Check (ADF Test)
-
-* Simplified Augmented Dickey-Fuller test
-* Triggered once sufficient data is available
-* Used for research validation, not trading decisions
-
-#### Rolling Correlation
-
-* Rolling correlation between asset prices
+```json
+{
+  "symbol": "btcusdt",
+  "ts": 1765964997928,
+  "price": 86449.4,
+  "size": 0.011
+}
+```
 
 ---
 
-### 4. Live vs Resampled Analytics
+### 2️⃣ Timeframe Aggregation (OHLC)
+Supported timeframes:
+- 1 second
+- 1 minute
+- 5 minutes
 
-Different analytics update on different natural frequencies:
+Each bar includes:
+- Open, High, Low, Close
+- Volume
+- Trade count
 
-| Metric           | Update Frequency  |
-| ---------------- | ----------------- |
-| Prices           | Live / Tick-level |
-| Spread & Z-score | Sub-second        |
-| Correlation      | Rolling window    |
-| ADF Test         | On-demand         |
-
-This avoids unnecessary computation while preserving responsiveness.
-
----
-
-### 5. Interactive Dashboard
-
-The dashboard provides:
-
-* Symbol selection
-* Timeframe selection
-* Rolling window configuration
-* Live connection controls
-* Zoomable and hover-enabled charts
-
-Visual modules include:
-
-* Price charts
-* Spread and Z-score charts
-* Correlation charts
-* Volume charts
-* Summary statistics panels
+Endpoint:
+```
+GET /ohlc/{symbol}/{timeframe}
+```
 
 ---
 
-### 6. Alerting System
-
-Users can define **rule-based alerts**, such as:
-
-* Z-score above or below a threshold
-* Price-based conditions
-* Spread-based conditions
-
-Alerts are:
-
-* Evaluated in near-real-time
-* Displayed visually in the UI
-* Logged with timestamps
+### 3️⃣ Quantitative Analytics (Backend)
+- Price statistics (mean, high, low)
+- OLS regression (hedge ratio)
+- Spread & Z-score
+- Rolling correlation
+- Stationarity check (ADF)
 
 ---
 
-### 7. Data Export
-
-The system supports exporting:
-
-* **Raw tick data** (CSV / JSON)
-* **OHLC data** for selected timeframe
-
-This enables:
-
-* Offline analysis
-* Backtesting
-* Research workflows
+### 4️⃣ Alert Engine
+- Z-score threshold alerts
+- Price-based conditions
+- Real-time backend evaluation
 
 ---
 
-## Running the Application
+### 5️⃣ Interactive Frontend Dashboard
+- Symbol & timeframe selection
+- Rolling window controls
+- Live charts with zoom & hover
+- Analytics panels
+- Alert visualization
 
-### Prerequisites
+---
 
-* Node.js (v18+ recommended)
-* npm
+### 6️⃣ Data Export
+- Tick data (CSV / JSON)
+- OHLC bars (CSV)
+- Designed for research & backtesting
 
-### Installation & Run
+---
 
+## ▶️ Running the Project
+
+### Backend
+```bash
+cd backend
+pip install -r requirements.txt
+uvicorn main:app --reload
+```
+
+Backend URL:
+```
+http://127.0.0.1:8000
+```
+
+### Frontend
 ```bash
 npm install
 npm run dev
 ```
 
-The application will start locally and open in the browser.
+---
+
+## 📈 Extensibility & Scaling
+
+- Replace Binance with CME / FIX feeds
+- Swap in-memory store with Redis / DuckDB
+- Extend analytics:
+  - Kalman Filters
+  - Robust regression
+  - Strategy backtesting
+- Horizontal scaling via message queues
 
 ---
 
-## Scaling & Extensibility Notes
+## 🤖 AI Usage Disclosure
 
-Although this project runs locally, it is designed with scalability in mind:
+ChatGPT was used for:
+- Boilerplate generation
+- Debugging assistance
+- Documentation refinement
 
-* WebSocket ingestion can be replaced with other feeds (CME, REST, FIX)
-* Storage layer can be swapped for Redis, DuckDB, or time-series databases
-* Analytics engine can be extended with:
-
-  * Kalman Filters
-  * Robust regression techniques
-  * Backtesting modules
-* UI components are modular and reusable
-
-The current architecture allows these extensions without rewriting core logic.
+All system design, analytics logic, and integration decisions were implemented and validated manually.
 
 ---
 
-## ChatGPT / AI Usage Disclosure
+## ⚠️ Disclaimer
 
-ChatGPT was used to:
-
-* Assist with boilerplate generation
-* Validate analytics formulations
-* Improve code structure and documentation clarity
-
-All design decisions, analytics logic, and integration choices were reviewed and implemented manually.
-
----
-
-## Disclaimer
-
-This application is for **educational and evaluation purposes only**.
-
-It is **not intended for live trading**, investment decisions, or financial advice.
+It does **not** constitute financial advice and is **not intended for live trading**.
